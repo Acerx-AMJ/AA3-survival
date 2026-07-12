@@ -1,14 +1,34 @@
-#include "SRU/sru.hpp"
+#include "menuState.hpp"
 #include <raylib.h>
 
+constexpr int minWindowWidth = 800;
+constexpr int minWindowHeight = 600;
+
 int main() {
-   InitWindow(800, 600, "AA3-Survival");
-   SetTargetFPS(60);
+   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_MAXIMIZED);
+   InitWindow(minWindowWidth, minWindowHeight, "AA3-Survival");
+   SetWindowMinSize(minWindowWidth, minWindowHeight);
+   InitAudioDevice();
+   SetExitKey(KEY_NULL);
+   SetTraceLogLevel(LOG_ERROR);
+
+   State *current = new MenuState();
 
    while (!WindowShouldClose()) {
-      BeginDrawing();
-         ClearBackground(BLACK);
-         DrawCircleV(getWindowCenter(), sin(GetTime()) * 12.5f * 4.0f + 37.5f * 4.0f, HSV(fmodf(GetTime() * 120.0f, 360.0f), 1.0f, 1.0f));
-      EndDrawing();
+      if (current->shouldChangeState()) {
+         State *newState = current->change();
+         delete current;
+         current = newState;
+      }
+
+      if (!current) {
+         break;
+      }
+
+      current->updateStateLogic();
+      current->renderState();
    }
+
+   CloseWindow();
+   CloseAudioDevice();
 }

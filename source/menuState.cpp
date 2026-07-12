@@ -1,4 +1,5 @@
 #include "menuState.hpp"
+#include "gameState.hpp"
 #include "SRU/assets.hpp"
 #include "SRU/util.hpp"
 #include "SRU/render.hpp"
@@ -12,12 +13,25 @@ MenuState::MenuState() {
    loadFont("slackey", "assets/fonts/slackey.ttf");
    loadTexture("loading", "assets/textures/loading.png");
    if (loadedAssets) {
-      phase = Load::done;
+      load = Load::done;
    }
+   updateResponsiveness();
 }
 
 State *MenuState::change() {
-   return nullptr;
+   if (settings) {
+      return nullptr; // while no settings
+   }
+   else if (quitting) {
+      return nullptr; // quit the game
+   }
+   return new GameState();
+}
+
+void MenuState::updateResponsiveness() {
+   playButton = mapCubicAreaCentered(V2(0.5f, 0.5f), V2(0.1f, 0.1f));
+   optionsButton = mapCubicAreaCentered(V2(0.33f, 0.5f), V2(0.1f, 0.1f));
+   quitButton = mapCubicAreaCentered(V2(0.66f, 0.5f), V2(0.1f, 0.1f));
 }
 
 void MenuState::update() {
@@ -25,15 +39,32 @@ void MenuState::update() {
       updateLoadingState();
       return;
    }
+
+   Vector2 mouse = GetMousePosition();
+   bool clicked = IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+
+   if (clicked && CheckCollisionPointRec(mouse, playButton)) {
+      quitState();
+   }
+
+   if (clicked && CheckCollisionPointRec(mouse, optionsButton)) {
+      settings = true;
+      quitState();
+   }
+
+   if (clicked && CheckCollisionPointRec(mouse, quitButton)) {
+      quitting = true;
+      quitState();
+   }
 }
 
 void MenuState::render() {
-   if (phase != Load::done) {
-      renderLoadingState();
-      return;
+   if (load == Load::done) {
+      drawTextCenteredResponsive(getFont("slackey"), V2(0.5f, 0.1f), "AA3-Survival", 80.0f);
+      drawTexture(getTexture("play"), R4pos(playButton), R4size(playButton));
+      drawTexture(getTexture("cogwheel"), R4pos(optionsButton), R4size(optionsButton));
+      drawTexture(getTexture("quit"), R4pos(quitButton), R4size(quitButton));
    }
-
-   drawRectResponsive(V2(0.0f, 0.0f), V2(1.0f, 1.0f), BLUE);
 
    if (!loadedAssets) {
       renderLoadingState();
@@ -43,27 +74,27 @@ void MenuState::render() {
 void MenuState::updateLoadingState() {
    iconRotation += DT * iconRotationSpeed;
 
-   if (phase == Load::fonts) {
+   if (load == Load::fonts) {
       loadFonts("assets/fonts");
       loadingText = "Loading Textures...";
-      phase = Load::textures;
+      load = Load::textures;
    }
-   else if (phase == Load::textures) {
+   else if (load == Load::textures) {
       loadTextures("assets/textures");
       loadingText = "Loading Shaders...";
-      phase = Load::shaders;
+      load = Load::shaders;
    }
-   else if (phase == Load::shaders) {
+   else if (load == Load::shaders) {
       loadShaders("assets/shaders");
       loadingText = "Loading Sounds...";
-      phase = Load::sounds;
+      load = Load::sounds;
    }
-   else if (phase == Load::sounds) {
+   else if (load == Load::sounds) {
       loadSounds("assets/sounds");
       loadingText = "Loading Done!";
-      phase = Load::done;
+      load = Load::done;
    }
-   else if (phase == Load::done) {
+   else if (load == Load::done) {
       loadingTimer += DT;
       if (loadingTimer >= loadingTime) {
          loadedAssets = true;
@@ -77,7 +108,6 @@ void MenuState::renderLoadingState() {
    }
    
    float progress = loadingTimer / loadingTime;
-
    drawRectResponsive(V2(0.0f, progress), V2(1.0f, 1.0f), BLACK);
    drawTextureCenteredResponsiveCubic(getTexture("loading"), V2(0.5f, 0.5f + progress), V2(0.1f, 0.1f));
    drawTextCenteredResponsive(getFont("slackey"), V2(0.5f, 0.375f + progress), loadingText.c_str(), 60.0f);   

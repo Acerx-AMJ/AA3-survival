@@ -51,25 +51,45 @@ void renderPlayer(Entity &player) {
    drawTexture(getTexture("player"), player.position, player.size);
 }
 
+// Floating demon
+void initFloatingDemon(Entity &demon) {
+   demon.size = V2(50.0f, 50.0f);
+   demon.velocity = V2();
+   demon.direction = V2();
+   demon.speed = 125.0f;
+   demon.health = 50.0f;
+}
+
+void updateFloatingDemon(Entity &demon, float DT) {
+   demon.position += V2(cos(GetTime()), sin(GetTime()));
+}
+
+void renderFloatingDemon(Entity &demon) {
+   drawTexture(getTexture("floating_demon"), demon.position, demon.size);
+}
+
 // Entity
 void initEntity(Entity &entity, EntityType type, Vector2 position) {
    entity.type = type;
    entity.position = position;
 
    switch (entity.type) {
-   case PLAYER: initPlayer(entity); break;
+   case PLAYER:         initPlayer(entity); break;
+   case FLOATING_DEMON: initFloatingDemon(entity); break;
    }
 }
 
 void updateEntity(Entity &entity, float DT) {
    switch (entity.type) {
-   case PLAYER: updatePlayer(entity, DT); break;
+   case PLAYER:         updatePlayer(entity, DT); break;
+   case FLOATING_DEMON: updateFloatingDemon(entity, DT); break;
    }
 }
 
 void renderEntity(Entity &entity) {
    switch (entity.type) {
-   case PLAYER: renderPlayer(entity); break;
+   case PLAYER:         renderPlayer(entity); break;
+   case FLOATING_DEMON: renderFloatingDemon(entity); break;
    }
 }
 

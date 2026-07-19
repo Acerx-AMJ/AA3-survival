@@ -6,7 +6,7 @@ static constexpr int playerShadowCount = 3;
 static constexpr float playerShadowAlphaUnit = 1.0f / (playerShadowCount + 1);
 
 enum EntityType {
-   PLAYER
+   PLAYER, FLOATING_DEMON
 };
 
 struct Entity {

@@ -5,14 +5,21 @@
 static constexpr int playerShadowCount = 3;
 static constexpr float playerShadowAlphaUnit = 1.0f / (playerShadowCount + 1);
 
+enum EntityClass {
+   CLASS_PLAYER, CLASS_ENEMY
+};
+
 enum EntityType {
    PLAYER, FLOATING_DEMON
 };
 
 struct Entity {
+   size_t ID;
+   EntityClass eclass;
    EntityType type;
    Vector2 position;
 
+   Rectangle bounds;
    Vector2 size;
    Vector2 velocity;
    Vector2 direction;
@@ -21,6 +28,11 @@ struct Entity {
    float speed;
    float maxHealth;
    float health;
+   float contactDamage;
+   float contactDamageCooldown;
+   float contactDamageTimer;
+
+   bool died;
 
    Vector2 shadowCenters[playerShadowCount];
    Vector2 shadowSizes[playerShadowCount];
@@ -28,6 +40,7 @@ struct Entity {
 };
 
 void initEntity(Entity &entity, EntityType type, Vector2 position);
+void onEntityDied(Entity &entity);
 void updateEntity(Entity &entity, float DT);
 void renderEntity(Entity &entity);
 

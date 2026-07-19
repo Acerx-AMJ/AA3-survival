@@ -1,5 +1,6 @@
 #include "gameState.hpp"
 #include "entities.hpp"
+#include "events.hpp"
 
 GameState::GameState() {
    initEntities();
@@ -14,6 +15,7 @@ State *GameState::change() {
 }
 
 void GameState::update() {
+   clearEvents();
    updateEntities(DT);
 }
 

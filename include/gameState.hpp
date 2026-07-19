@@ -1,5 +1,7 @@
 #pragma once
 #include "state.hpp"
+#include "weapons.hpp"
+#include <cstddef>
 
 struct GameState: public State {
    GameState();
@@ -12,5 +14,6 @@ struct GameState: public State {
 
 private:
 
-   
+   size_t player;
+   Weapon weapon;
 };

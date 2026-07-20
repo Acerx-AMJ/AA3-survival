@@ -14,6 +14,8 @@ struct GameState: public State {
 
 private:
 
+   bool playerdied = false;
+   bool restart = false;
    size_t player;
    Weapon weapon;
 };

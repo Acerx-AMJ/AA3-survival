@@ -7,6 +7,7 @@
 
 static std::vector<Entity> entities;
 static std::vector<size_t> freeSlots;
+static Vector2 lastPlayerPosition = V2();
 
 // Player
 void initPlayer(Entity &player) {
@@ -69,7 +70,7 @@ void initFloatingDemon(Entity &demon) {
    demon.size = V2(50.0f, 50.0f);
    demon.velocity = V2();
    demon.direction = V2();
-   demon.speed = 125.0f;
+   demon.speed = 100.0f;
    demon.maxHealth = 50.0f;
    demon.health = demon.maxHealth;
    demon.contactDamage = 5.0f;
@@ -82,12 +83,52 @@ void onFloatingDemonDied(Entity &demon) {
    demon.died = true;
 }
 
-void updateFloatingDemon(Entity &demon, float DT) {
-   demon.position += V2(cos(GetTime()), sin(GetTime()));
+void updateFloatingDemon(Entity &demon, float DT, Vector2 playerCenter) {
+   demon.position += Vector2Normalize(playerCenter - R4center(demon.bounds)) * demon.speed * DT;
    demon.bounds = R4(demon.position, demon.size);
 }
 
 void renderFloatingDemon(Entity &demon) {
+   drawTexture(getTexture("floating_demon"), demon.position, demon.size);
+}
+
+// Shooting demon
+void initShootingDemon(Entity &demon) {
+   demon.eclass = CLASS_ENEMY;
+   demon.size = V2(75.0f, 75.0f);
+   demon.velocity = V2();
+   demon.direction = V2();
+   demon.speed = 75.0f;
+   demon.maxHealth = 100.0f;
+   demon.health = demon.maxHealth;
+   demon.contactDamage = 10.0f;
+   demon.contactDamageCooldown = 1.0f;
+   demon.contactDamageTimer = 0.0f;
+   demon.despawnTime = 0.0f;
+   demon.firerate = 60.0f / 100.0f;
+   demon.timeSincelastShot = 0.0f;
+}
+
+void onShootingDemonDied(Entity &demon) {
+   demon.died = true;
+}
+
+void updateShootingDemon(Entity &demon, float DT, Vector2 playerCenter) {
+   demon.position += V2(cos(GetTime()) * 0.5f, sin(GetTime()) * 0.5f);
+   demon.bounds = R4(demon.position, demon.size);
+
+   if (demon.timeSincelastShot >= demon.firerate) {
+      demon.timeSincelastShot = 0.0f;
+
+      Vector2 shotPosition = R4center(demon.bounds);
+      size_t projectile = spawnEntity(DEMON_PROJECTILE, shotPosition);
+      Entity &projectileEntity = getEntity(projectile);
+      projectileEntity.direction = Vector2Normalize(playerCenter - shotPosition);
+      projectileEntity.angle = atan2(playerCenter.y - shotPosition.y, playerCenter.x - shotPosition.x) * 180.0f / PI;
+   }
+}
+
+void renderShootingDemon(Entity &demon) {
    drawTexture(getTexture("floating_demon"), demon.position, demon.size);
 }
 
@@ -104,13 +145,35 @@ void onPistolProjectileDied(Entity &projectile) {
    projectile.died = true;
 }
 
-void updatePistolProjectile(Entity &projectile, float DT) {
+void updatePistolProjectile(Entity &projectile, float DT, Vector2 playerCenter) {
    projectile.position += projectile.direction * projectile.speed * DT;
    projectile.bounds = R4(projectile.position, projectile.size);
 }
 
 void renderPistolProjectile(Entity &projectile) {
    drawRect(projectile.bounds, YELLOW, projectile.angle);
+}
+
+// Demon projectile
+void initDemonProjectile(Entity &projectile) {
+   projectile.eclass = CLASS_ENEMY_PROJECTILE;
+   projectile.size = V2(20.0f, 20.0f);
+   projectile.speed = 300.0f;
+   projectile.contactDamage = 10.0f;
+   projectile.despawnTime = 2.0f;
+}
+
+void onDemonProjectileDied(Entity &projectile) {
+   projectile.died = true;
+}
+
+void updateDemonProjectile(Entity &projectile, float DT, Vector2 playerCenter) {
+   projectile.position += projectile.direction * projectile.speed * DT;
+   projectile.bounds = R4(projectile.position, projectile.size);
+}
+
+void renderDemonProjectile(Entity &projectile) {
+   drawRect(projectile.bounds, GREEN, projectile.angle);
 }
 
 // Entity
@@ -123,7 +186,9 @@ void initEntity(Entity &entity, EntityType type, Vector2 position) {
    switch (entity.type) {
    case PLAYER:            initPlayer(entity); break;
    case FLOATING_DEMON:    initFloatingDemon(entity); break;
+   case SHOOTING_DEMON:    initShootingDemon(entity); break;
    case PISTOL_PROJECTILE: initPistolProjectile(entity); break;
+   case DEMON_PROJECTILE:  initDemonProjectile(entity); break;
    }
 }
 
@@ -131,18 +196,29 @@ void onEntityDied(Entity &entity) {
    switch (entity.type) {
    case PLAYER:            onPlayerDied(entity); break;
    case FLOATING_DEMON:    onFloatingDemonDied(entity); break;
+   case SHOOTING_DEMON:    onShootingDemonDied(entity); break;
    case PISTOL_PROJECTILE: onPistolProjectileDied(entity); break;
+   case DEMON_PROJECTILE:  onDemonProjectileDied(entity); break;
    }
 }
 
-void updateEntity(Entity &entity, float DT) {
+void updateEntity(Entity &entity, float DT, size_t player) {
+   Entity &playerEntity = entities[player];
+   if (playerEntity.ID != 0) {
+      lastPlayerPosition = R4center(playerEntity.bounds);
+   }
+
+   Vector2 position = lastPlayerPosition;   
+   entity.timeSincelastShot += DT;
    entity.contactDamageTimer += DT;
    entity.aliveTime += DT;
 
    switch (entity.type) {
    case PLAYER:            updatePlayer(entity, DT); break;
-   case FLOATING_DEMON:    updateFloatingDemon(entity, DT); break;
-   case PISTOL_PROJECTILE: updatePistolProjectile(entity, DT); break;
+   case FLOATING_DEMON:    updateFloatingDemon(entity, DT, position); break;
+   case SHOOTING_DEMON:    updateShootingDemon(entity, DT, position); break;
+   case PISTOL_PROJECTILE: updatePistolProjectile(entity, DT, position); break;
+   case DEMON_PROJECTILE:  updateDemonProjectile(entity, DT, position); break;
    }
 
    if (entity.despawnTime != 0.0f && entity.aliveTime >= entity.despawnTime) {
@@ -154,7 +230,9 @@ void renderEntity(Entity &entity) {
    switch (entity.type) {
    case PLAYER:            renderPlayer(entity); break;
    case FLOATING_DEMON:    renderFloatingDemon(entity); break;
+   case SHOOTING_DEMON:    renderShootingDemon(entity); break;
    case PISTOL_PROJECTILE: renderPistolProjectile(entity); break;
+   case DEMON_PROJECTILE:  renderDemonProjectile(entity); break;
    }
 }
 
@@ -188,14 +266,15 @@ Entity &getEntity(size_t ID) {
 }
 
 void initEntities() {
+   freeSlots.clear();
    entities.clear();
    entities.push_back({.ID = 0});
 }
 
-void updateEntities(float DT) {
+void updateEntities(float DT, size_t player) {
    for (Entity &entity: entities) {
       if (entity.ID != 0) {
-         updateEntity(entity, DT);
+         updateEntity(entity, DT, player);
       }
    }
 

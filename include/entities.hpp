@@ -15,7 +15,9 @@ enum EntityClass {
 enum EntityType {
    PLAYER,
    FLOATING_DEMON,
+   SHOOTING_DEMON,
    PISTOL_PROJECTILE,
+   DEMON_PROJECTILE,
 };
 
 struct Entity {
@@ -42,6 +44,9 @@ struct Entity {
    float despawnTime;
    bool died;
 
+   float firerate;
+   float timeSincelastShot;
+
    Vector2 shadowCenters[playerShadowCount];
    Vector2 shadowSizes[playerShadowCount];
    float shadowAlphas[playerShadowCount];
@@ -49,12 +54,12 @@ struct Entity {
 
 void initEntity(Entity &entity, EntityType type, Vector2 position);
 void onEntityDied(Entity &entity);
-void updateEntity(Entity &entity, float DT);
+void updateEntity(Entity &entity, float DT, size_t player);
 void renderEntity(Entity &entity);
 
 size_t spawnEntity(EntityType type, Vector2 position);
 Entity &getEntity(size_t ID);
 
 void initEntities();
-void updateEntities(float DT);
+void updateEntities(float DT, size_t player);
 void renderEntities();

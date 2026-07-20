@@ -22,6 +22,7 @@ void initPlayer(Entity &player) {
    player.contactDamage = 0.0f;
    player.contactDamageCooldown = 1.0f;
    player.contactDamageTimer = 0.0f;
+   player.despawnTime = 0.0f;
 
    Vector2 center = player.position + getOrigin(player.size);
    for (int i = 0; i < playerShadowCount; ++i) {
@@ -74,6 +75,7 @@ void initFloatingDemon(Entity &demon) {
    demon.contactDamage = 5.0f;
    demon.contactDamageCooldown = 1.0f;
    demon.contactDamageTimer = 0.0f;
+   demon.despawnTime = 0.0f;
 }
 
 void onFloatingDemonDied(Entity &demon) {
@@ -89,38 +91,70 @@ void renderFloatingDemon(Entity &demon) {
    drawTexture(getTexture("floating_demon"), demon.position, demon.size);
 }
 
+// Pistol projectile
+void initPistolProjectile(Entity &projectile) {
+   projectile.eclass = CLASS_PLAYER_PROJECTILE;
+   projectile.size = V2(20.0f, 20.0f);
+   projectile.speed = 400.0f;
+   projectile.contactDamage = 10.0f;
+   projectile.despawnTime = 2.0f;
+}
+
+void onPistolProjectileDied(Entity &projectile) {
+   projectile.died = true;
+}
+
+void updatePistolProjectile(Entity &projectile, float DT) {
+   projectile.position += projectile.direction * projectile.speed * DT;
+   projectile.bounds = R4(projectile.position, projectile.size);
+}
+
+void renderPistolProjectile(Entity &projectile) {
+   drawRect(projectile.bounds, YELLOW, projectile.angle);
+}
+
 // Entity
 void initEntity(Entity &entity, EntityType type, Vector2 position) {
    entity.type = type;
    entity.position = position;
+   entity.aliveTime = 0.0f;
    entity.died = false;
 
    switch (entity.type) {
-   case PLAYER:         initPlayer(entity); break;
-   case FLOATING_DEMON: initFloatingDemon(entity); break;
+   case PLAYER:            initPlayer(entity); break;
+   case FLOATING_DEMON:    initFloatingDemon(entity); break;
+   case PISTOL_PROJECTILE: initPistolProjectile(entity); break;
    }
 }
 
 void onEntityDied(Entity &entity) {
    switch (entity.type) {
-   case PLAYER:         onPlayerDied(entity); break;
-   case FLOATING_DEMON: onFloatingDemonDied(entity); break;
+   case PLAYER:            onPlayerDied(entity); break;
+   case FLOATING_DEMON:    onFloatingDemonDied(entity); break;
+   case PISTOL_PROJECTILE: onPistolProjectileDied(entity); break;
    }
 }
 
 void updateEntity(Entity &entity, float DT) {
    entity.contactDamageTimer += DT;
+   entity.aliveTime += DT;
 
    switch (entity.type) {
-   case PLAYER:         updatePlayer(entity, DT); break;
-   case FLOATING_DEMON: updateFloatingDemon(entity, DT); break;
+   case PLAYER:            updatePlayer(entity, DT); break;
+   case FLOATING_DEMON:    updateFloatingDemon(entity, DT); break;
+   case PISTOL_PROJECTILE: updatePistolProjectile(entity, DT); break;
+   }
+
+   if (entity.despawnTime != 0.0f && entity.aliveTime >= entity.despawnTime) {
+      onEntityDied(entity);
    }
 }
 
 void renderEntity(Entity &entity) {
    switch (entity.type) {
-   case PLAYER:         renderPlayer(entity); break;
-   case FLOATING_DEMON: renderFloatingDemon(entity); break;
+   case PLAYER:            renderPlayer(entity); break;
+   case FLOATING_DEMON:    renderFloatingDemon(entity); break;
+   case PISTOL_PROJECTILE: renderPistolProjectile(entity); break;
    }
 }
 
@@ -176,12 +210,26 @@ void updateEntities(float DT) {
             continue;
          }
 
-         bool player = (entity1.eclass == CLASS_PLAYER || entity2.eclass == CLASS_PLAYER);
-         bool enemy  = (entity1.eclass == CLASS_ENEMY  || entity2.eclass == CLASS_ENEMY);
+         bool player      = (entity1.eclass == CLASS_PLAYER            || entity2.eclass == CLASS_PLAYER);
+         bool enemy       = (entity1.eclass == CLASS_ENEMY             || entity2.eclass == CLASS_ENEMY);
+         bool pprojectile = (entity1.eclass == CLASS_PLAYER_PROJECTILE || entity2.eclass == CLASS_PLAYER_PROJECTILE);
+         bool eprojectile = (entity1.eclass == CLASS_ENEMY_PROJECTILE  || entity2.eclass == CLASS_ENEMY_PROJECTILE);
 
          if (player && enemy) {
             dealContactDamage(entity1, entity2.ID);
             dealContactDamage(entity2, entity1.ID);
+         }
+         else if (enemy && pprojectile) {
+            Entity &enemyEntity = (entity1.eclass == CLASS_ENEMY ? entity1 : entity2);
+            Entity &projectileEntity = (entity1.eclass == CLASS_PLAYER_PROJECTILE ? entity1 : entity2);
+            dealContactDamage(projectileEntity, enemyEntity.ID);
+            onEntityDied(projectileEntity);
+         }
+         else if (player && eprojectile) {
+            Entity &playerEntity = (entity1.eclass == CLASS_PLAYER ? entity1 : entity2);
+            Entity &projectileEntity = (entity1.eclass == CLASS_ENEMY_PROJECTILE ? entity1 : entity2);
+            dealContactDamage(projectileEntity, playerEntity.ID);
+            onEntityDied(projectileEntity);
          }
       }
    }

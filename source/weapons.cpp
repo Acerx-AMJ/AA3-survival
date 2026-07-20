@@ -12,8 +12,15 @@ void initPistol(Weapon &pistol) {
    pistol.timeSinceLastShot = 0.0f;
 }
 
-void updatePistol(Weapon &pistol, float DT) {
+void updatePistol(Weapon &pistol, float DT, Vector2 playerCenter) {
+   if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && pistol.timeSinceLastShot >= pistol.firerate) {
+      pistol.timeSinceLastShot = 0.0f;
 
+      size_t projectile = spawnEntity(PISTOL_PROJECTILE, playerCenter);
+      Entity &projectileEntity = getEntity(projectile);
+      projectileEntity.direction = Vector2Normalize(GetMousePosition() - playerCenter);
+      projectileEntity.angle = pistol.angle;
+   }
 }
 
 void renderPistol(Weapon &pistol, Vector2 playerCenter) {
@@ -30,7 +37,7 @@ void initWeapon(Weapon &weapon, WeaponType type, size_t player) {
    switch (weapon.type) {
    case PISTOL: initPistol(weapon); break;
    }
-   weapon.origin = V2(0.0f, 0.0f) - weapon.size - entity.size / 2.0f;
+   weapon.origin = V2(weapon.size.x / 2.0f + entity.size.x, weapon.size.y / 2.0f);
 }
 
 void updateWeapon(Weapon &weapon, float DT, size_t player) {
@@ -40,8 +47,10 @@ void updateWeapon(Weapon &weapon, float DT, size_t player) {
    Vector2 mouse = GetMousePosition();
 
    weapon.angle = atan2(center.y - mouse.y, center.x - mouse.x) * 180.0f / PI;
+   weapon.timeSinceLastShot += DT;
+   
    switch (weapon.type) {
-   case PISTOL: updatePistol(weapon, DT); break;
+   case PISTOL: updatePistol(weapon, DT, center); break;
    }
 }
 

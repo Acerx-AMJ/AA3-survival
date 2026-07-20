@@ -3,10 +3,9 @@
 #include "SRU/render.hpp"
 #include "SRU/util.hpp"
 #include "events.hpp"
-#include <vector>
 
-static std::vector<Entity> entities;
-static std::vector<size_t> freeSlots;
+std::vector<Entity> entities;
+std::vector<size_t> freeSlots;
 static Vector2 lastPlayerPosition = V2();
 
 // Player
@@ -122,7 +121,7 @@ void updateShootingDemon(Entity &demon, float DT, Vector2 playerCenter) {
 
       Vector2 shotPosition = R4center(demon.bounds);
       size_t projectile = spawnEntity(DEMON_PROJECTILE, shotPosition);
-      Entity &projectileEntity = getEntity(projectile);
+      Entity &projectileEntity = entities[projectile];
       projectileEntity.direction = Vector2Normalize(playerCenter - shotPosition);
       projectileEntity.angle = atan2(playerCenter.y - shotPosition.y, playerCenter.x - shotPosition.x) * 180.0f / PI;
    }
@@ -261,10 +260,6 @@ size_t spawnEntity(EntityType type, Vector2 position) {
    return entity.ID;
 }
 
-Entity &getEntity(size_t ID) {
-   return entities[ID];
-}
-
 void initEntities() {
    freeSlots.clear();
    entities.clear();
@@ -281,7 +276,7 @@ void updateEntities(float DT, size_t player) {
    // Resolve collisions
    for (Entity &entity1: entities) {
       for (Entity &entity2: entities) {
-         if (entity1.ID == 0 || entity2.ID == 0 || entity1.ID == entity2.ID || entity1.eclass == entity2.eclass) {
+         if (entity1.ID == 0 || entity2.ID == 0 || entity1.died || entity2.died || entity1.ID == entity2.ID || entity1.eclass == entity2.eclass) {
             continue;
          }
 

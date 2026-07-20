@@ -33,7 +33,7 @@ void GameState::update() {
       updateWeapon(weapon, DT, player);
       updateEntities(DT, player);
       
-      Entity &playerEntity = getEntity(player);
+      Entity &playerEntity = entities[player];
       if (playerEntity.died || playerEntity.ID == 0) {
          playerdied = true;
       }
@@ -54,7 +54,7 @@ void GameState::render() {
 
    if (!playerdied) {
       renderWeapon(weapon, player);
-      Entity &playerEntity = getEntity(player);
+      Entity &playerEntity = entities[player];
 
       Vector2 healthbarCenter = mapRatioToScreen(0.5f, 0.1f);
       Vector2 healthbarSize = mapCubicRatioToScreen(0.3f, 0.05f);
@@ -62,7 +62,13 @@ void GameState::render() {
 
       drawRect(healthbarCenter - healthbarSize / 2.0f, healthbarSize, RED);
       drawRect(healthbarCenter - healthbarSize / 2.0f, V2(healthbarSize.x * ratio, healthbarSize.y), GREEN);
-      drawTextCentered(getFont("slackey"), healthbarCenter, TextFormat("%.1f/%.1f", playerEntity.health, playerEntity.maxHealth), getFontSizeScaled(30.0f));
+
+      Font font = getFont("slackey");
+
+      drawTextCentered(font, healthbarCenter, TextFormat("%.1f/%.1f", playerEntity.health, playerEntity.maxHealth), getFontSizeScaled(30.0f), BLACK);
+      drawText(font, V2(10.0f, 10.0f), TextFormat("EC: %llu/%llu", entities.size(), entities.capacity()), getFontSizeScaled(20.0f));
+      drawText(font, V2(10.0f, 40.0f), TextFormat("FS: %llu/%llu", freeSlots.size(), freeSlots.capacity()), getFontSizeScaled(20.0f));
+      drawText(font, V2(10.0f, 70.0f), TextFormat("AE: %llu", entities.size() - freeSlots.size()), getFontSizeScaled(20.0f));
    }
    else {
       DrawText("You died! Press r to restart.\n Or esc to go to main menu.", 20, 20, 80, RED);

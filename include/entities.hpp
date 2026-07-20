@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include <cstddef>
+#include <vector>
 
 static constexpr int playerShadowCount = 3;
 static constexpr float playerShadowAlphaUnit = 1.0f / (playerShadowCount + 1);
@@ -58,8 +59,9 @@ void updateEntity(Entity &entity, float DT, size_t player);
 void renderEntity(Entity &entity);
 
 size_t spawnEntity(EntityType type, Vector2 position);
-Entity &getEntity(size_t ID);
-
 void initEntities();
 void updateEntities(float DT, size_t player);
 void renderEntities();
+
+extern std::vector<Entity> entities;
+extern std::vector<size_t> freeSlots;

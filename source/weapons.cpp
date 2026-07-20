@@ -17,7 +17,7 @@ void updatePistol(Weapon &pistol, float DT, Vector2 playerCenter) {
       pistol.timeSinceLastShot = 0.0f;
 
       size_t projectile = spawnEntity(PISTOL_PROJECTILE, playerCenter);
-      Entity &projectileEntity = getEntity(projectile);
+      Entity &projectileEntity = entities[projectile];
       projectileEntity.direction = Vector2Normalize(GetMousePosition() - playerCenter);
       projectileEntity.angle = pistol.angle;
    }
@@ -29,7 +29,7 @@ void renderPistol(Weapon &pistol, Vector2 playerCenter) {
 
 // Weapon
 void initWeapon(Weapon &weapon, WeaponType type, size_t player) {
-   Entity &entity = getEntity(player);
+   Entity &entity = entities[player];
    if (entity.ID == 0) return;
    
    weapon.type = type;
@@ -41,7 +41,7 @@ void initWeapon(Weapon &weapon, WeaponType type, size_t player) {
 }
 
 void updateWeapon(Weapon &weapon, float DT, size_t player) {
-   Entity &entity = getEntity(player);
+   Entity &entity = entities[player];
    if (entity.ID == 0) return;
    Vector2 center = entity.position + entity.size / 2.0f;
    Vector2 mouse = GetMousePosition();
@@ -55,7 +55,7 @@ void updateWeapon(Weapon &weapon, float DT, size_t player) {
 }
 
 void renderWeapon(Weapon &weapon, size_t player) {
-   Entity &entity = getEntity(player);
+   Entity &entity = entities[player];
    if (entity.ID == 0) return;
    Vector2 center = entity.position + entity.size / 2.0f;
    

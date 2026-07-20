@@ -1,4 +1,5 @@
 #include "menuState.hpp"
+#include "entities.hpp"
 #include "gameState.hpp"
 #include "SRU/assets.hpp"
 #include "SRU/util.hpp"
@@ -12,8 +13,13 @@ MenuState::MenuState() {
    loadingText = "Loading Fonts...";
    loadFont("slackey", "assets/fonts/slackey.ttf");
    loadTexture("loading", "assets/textures/loading.png");
+
    if (loadedAssets) {
       load = Load::done;
+   }
+   else {
+      entities.reserve(512);
+      freeSlots.reserve(512);
    }
    updateResponsiveness();
 }

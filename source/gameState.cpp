@@ -1,3 +1,6 @@
+#include "SRU/assets.hpp"
+#include "SRU/render.hpp"
+#include "SRU/text.hpp"
 #include "SRU/util.hpp" // IWYU pragma: export
 #include "gameState.hpp"
 #include "entities.hpp"
@@ -51,6 +54,15 @@ void GameState::render() {
 
    if (!playerdied) {
       renderWeapon(weapon, player);
+      Entity &playerEntity = getEntity(player);
+
+      Vector2 healthbarCenter = mapRatioToScreen(0.5f, 0.1f);
+      Vector2 healthbarSize = mapCubicRatioToScreen(0.3f, 0.05f);
+      float ratio = playerEntity.health / playerEntity.maxHealth;
+
+      drawRect(healthbarCenter - healthbarSize / 2.0f, healthbarSize, RED);
+      drawRect(healthbarCenter - healthbarSize / 2.0f, V2(healthbarSize.x * ratio, healthbarSize.y), GREEN);
+      drawTextCentered(getFont("slackey"), healthbarCenter, TextFormat("%.1f/%.1f", playerEntity.health, playerEntity.maxHealth), getFontSizeScaled(30.0f));
    }
    else {
       DrawText("You died! Press r to restart.\n Or esc to go to main menu.", 20, 20, 80, RED);

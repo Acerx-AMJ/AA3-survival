@@ -129,7 +129,7 @@ void updateShootingDemon(Entity &demon, float DT, Vector2 playerCenter) {
 }
 
 void renderShootingDemon(Entity &demon) {
-   drawTexture(getTexture("floating_demon"), demon.position, demon.size);
+   drawTexture(getTexture("shooting_demon"), demon.position, demon.size);
 }
 
 // Pistol projectile
@@ -138,7 +138,7 @@ void initPistolProjectile(Entity &projectile) {
    projectile.size = V2(20.0f, 20.0f);
    projectile.speed = 400.0f;
    projectile.contactDamage = 10.0f;
-   projectile.despawnTime = 2.0f;
+   projectile.despawnTime = 5.0f;
 }
 
 void onPistolProjectileDied(Entity &projectile) {
@@ -157,10 +157,10 @@ void renderPistolProjectile(Entity &projectile) {
 // Demon projectile
 void initDemonProjectile(Entity &projectile) {
    projectile.eclass = CLASS_ENEMY_PROJECTILE;
-   projectile.size = V2(20.0f, 20.0f);
+   projectile.size = V2(10.0f, 10.0f);
    projectile.speed = 300.0f;
    projectile.contactDamage = 10.0f;
-   projectile.despawnTime = 2.0f;
+   projectile.despawnTime = 5.0f;
 }
 
 void onDemonProjectileDied(Entity &projectile) {

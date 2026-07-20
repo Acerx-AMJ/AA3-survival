@@ -12,6 +12,7 @@ GameState::GameState() {
    spawnEntity(FLOATING_DEMON, {230.0f, 450.0f});
    spawnEntity(FLOATING_DEMON, {800.0f, 600.0f});
    spawnEntity(SHOOTING_DEMON, {1200.0f, 800.0f});
+   spawnEntity(SHOOTING_DEMON, {1600.0f, 100.0f});
    initWeapon(weapon, PISTOL, player);
 }
 

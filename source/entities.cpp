@@ -58,9 +58,9 @@ void updatePlayer(Entity &player, float DT) {
 
 void renderPlayer(Entity &player) {
    for (int i = 0; i < playerShadowCount; ++i) {
-      drawTextureCentered(getTexture("player"), player.shadowCenters[i], player.shadowSizes[i], Fade(WHITE, player.shadowAlphas[i]));
+      drawTexture(getTexture("player"), player.shadowCenters[i], player.shadowSizes[i], CENTER, Fade(WHITE, player.shadowAlphas[i]));
    }
-   drawTexture(getTexture("player"), player.position, player.size);
+   drawTexture(getTexture("player"), player.position, player.size, TOP_LEFT);
 }
 
 // Floating demon
@@ -83,12 +83,12 @@ void onFloatingDemonDied(Entity &demon) {
 }
 
 void updateFloatingDemon(Entity &demon, float DT, Vector2 playerCenter) {
-   demon.position += Vector2Normalize(playerCenter - R4center(demon.bounds)) * demon.speed * DT;
+   demon.position += Vector2Normalize(playerCenter - R4anchor(demon.bounds, TOP_LEFT, CENTER)) * demon.speed * DT;
    demon.bounds = R4(demon.position, demon.size);
 }
 
 void renderFloatingDemon(Entity &demon) {
-   drawTexture(getTexture("floating_demon"), demon.position, demon.size);
+   drawTexture(getTexture("floating_demon"), demon.position, demon.size, TOP_LEFT);
 }
 
 // Shooting demon
@@ -119,16 +119,16 @@ void updateShootingDemon(Entity &demon, float DT, Vector2 playerCenter) {
    if (demon.timeSincelastShot >= demon.firerate) {
       demon.timeSincelastShot = 0.0f;
 
-      Vector2 shotPosition = R4center(demon.bounds);
+      Vector2 shotPosition = R4anchor(demon.bounds, TOP_LEFT, CENTER);
       size_t projectile = spawnEntity(DEMON_PROJECTILE, shotPosition);
       Entity &projectileEntity = entities[projectile];
       projectileEntity.direction = Vector2Normalize(playerCenter - shotPosition);
-      projectileEntity.angle = atan2(playerCenter.y - shotPosition.y, playerCenter.x - shotPosition.x) * 180.0f / PI;
+      projectileEntity.angle = atan2(playerCenter.y - shotPosition.y, playerCenter.x - shotPosition.x) * RAD2DEG;
    }
 }
 
 void renderShootingDemon(Entity &demon) {
-   drawTexture(getTexture("shooting_demon"), demon.position, demon.size);
+   drawTexture(getTexture("shooting_demon"), demon.position, demon.size, TOP_LEFT);
 }
 
 // Pistol projectile
@@ -150,7 +150,7 @@ void updatePistolProjectile(Entity &projectile, float DT, Vector2 playerCenter) 
 }
 
 void renderPistolProjectile(Entity &projectile) {
-   drawRect(projectile.bounds, YELLOW, projectile.angle);
+   drawRect(projectile.bounds, TOP_LEFT, YELLOW, projectile.angle);
 }
 
 // Demon projectile
@@ -172,7 +172,7 @@ void updateDemonProjectile(Entity &projectile, float DT, Vector2 playerCenter) {
 }
 
 void renderDemonProjectile(Entity &projectile) {
-   drawRect(projectile.bounds, GREEN, projectile.angle);
+   drawRect(projectile.bounds, TOP_LEFT, GREEN, projectile.angle);
 }
 
 // Entity
@@ -204,7 +204,7 @@ void onEntityDied(Entity &entity) {
 void updateEntity(Entity &entity, float DT, size_t player) {
    Entity &playerEntity = entities[player];
    if (playerEntity.ID != 0) {
-      lastPlayerPosition = R4center(playerEntity.bounds);
+      lastPlayerPosition = R4anchor(playerEntity.bounds, TOP_LEFT, CENTER);
    }
 
    Vector2 position = lastPlayerPosition;   

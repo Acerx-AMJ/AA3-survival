@@ -35,9 +35,9 @@ State *MenuState::change() {
 }
 
 void MenuState::updateResponsiveness() {
-   playButton = mapCubicAreaCentered(V2(0.5f, 0.5f), V2(0.1f, 0.1f));
-   optionsButton = mapCubicAreaCentered(V2(0.33f, 0.5f), V2(0.1f, 0.1f));
-   quitButton = mapCubicAreaCentered(V2(0.66f, 0.5f), V2(0.1f, 0.1f));
+   playButton = mapRatioToArea(R4(0.5f, 0.5f, 0.1f, 0.1f), CENTER, WINDOW_AREA, CUBIC_RATIO);
+   optionsButton = mapRatioToArea(R4(0.33f, 0.5f, 0.1f, 0.1f), CENTER, WINDOW_AREA, CUBIC_RATIO);
+   quitButton = mapRatioToArea(R4(0.66f, 0.5f, 0.1f, 0.1f), CENTER, WINDOW_AREA, CUBIC_RATIO);
 }
 
 void MenuState::update() {
@@ -66,10 +66,10 @@ void MenuState::update() {
 
 void MenuState::render() {
    if (load == Load::done) {
-      drawTextCenteredResponsive(getFont("slackey"), V2(0.5f, 0.1f), "AA3-Survival", 80.0f);
-      drawTexture(getTexture("play"), R4pos(playButton), R4size(playButton));
-      drawTexture(getTexture("cogwheel"), R4pos(optionsButton), R4size(optionsButton));
-      drawTexture(getTexture("quit"), R4pos(quitButton), R4size(quitButton));
+      drawTextResponsive("slackey", V2(0.5f, 0.1f), "AA3-Survival", 80.0f);
+      drawTexture("play", playButton, TOP_LEFT);
+      drawTexture("cogwheel", optionsButton, TOP_LEFT);
+      drawTexture("quit", quitButton, TOP_LEFT);
    }
 
    if (!loadedAssets) {
@@ -114,7 +114,7 @@ void MenuState::renderLoadingState() {
    }
    
    float progress = loadingTimer / loadingTime;
-   drawRectResponsive(V2(0.0f, progress), V2(1.0f, 1.0f), BLACK);
-   drawTextureCenteredResponsiveCubic(getTexture("loading"), V2(0.5f, 0.5f + progress), V2(0.1f, 0.1f));
-   drawTextCenteredResponsive(getFont("slackey"), V2(0.5f, 0.375f + progress), loadingText.c_str(), 60.0f);   
+   drawRectResponsive(V2(0.0f, progress), V2(1.0f, 1.0f), TOP_LEFT, BLACK);
+   drawTextureResponsive(getTexture("loading"), V2(0.5f, 0.5f + progress), V2(0.1f, 0.1f), CENTER, WHITE, FULL_SOURCE, WINDOW_AREA, CUBIC_RATIO);
+   drawTextResponsive(getFont("slackey"), V2(0.5f, 0.375f + progress), loadingText.c_str(), 60.0f);
 }

@@ -1,6 +1,5 @@
 #include "SRU/assets.hpp"
 #include "SRU/render.hpp"
-#include "SRU/text.hpp"
 #include "SRU/util.hpp" // IWYU pragma: export
 #include "gameState.hpp"
 #include "entities.hpp"
@@ -56,19 +55,19 @@ void GameState::render() {
       renderWeapon(weapon, player);
       Entity &playerEntity = entities[player];
 
-      Vector2 healthbarCenter = mapRatioToScreen(0.5f, 0.1f);
-      Vector2 healthbarSize = mapCubicRatioToScreen(0.3f, 0.05f);
+      Vector2 healthbarCenter = mapRatioToArea(0.5f, 0.1f);
+      Vector2 healthbarSize = mapRatioToArea(0.3f, 0.05f, WINDOW_AREA, CUBIC_RATIO);
       float ratio = playerEntity.health / playerEntity.maxHealth;
 
-      drawRect(healthbarCenter - healthbarSize / 2.0f, healthbarSize, RED);
-      drawRect(healthbarCenter - healthbarSize / 2.0f, V2(healthbarSize.x * ratio, healthbarSize.y), GREEN);
+      drawRect(healthbarCenter - healthbarSize / 2.0f, healthbarSize, TOP_LEFT, RED);
+      drawRect(healthbarCenter - healthbarSize / 2.0f, V2(healthbarSize.x * ratio, healthbarSize.y), TOP_LEFT, GREEN);
 
       Font font = getFont("slackey");
 
-      drawTextCentered(font, healthbarCenter, TextFormat("%.1f/%.1f", playerEntity.health, playerEntity.maxHealth), getFontSizeScaled(30.0f), BLACK);
-      drawText(font, V2(10.0f, 10.0f), TextFormat("EC: %llu/%llu", entities.size(), entities.capacity()), getFontSizeScaled(20.0f));
-      drawText(font, V2(10.0f, 40.0f), TextFormat("FS: %llu/%llu", freeSlots.size(), freeSlots.capacity()), getFontSizeScaled(20.0f));
-      drawText(font, V2(10.0f, 70.0f), TextFormat("AE: %llu", entities.size() - freeSlots.size()), getFontSizeScaled(20.0f));
+      drawText(font, healthbarCenter, TextFormat("%.1f/%.1f", playerEntity.health, playerEntity.maxHealth), getFontSizeScaled(30.0f), CENTER, BLACK);
+      drawText(font, V2(10.0f, 10.0f), TextFormat("EC: %llu/%llu", entities.size(), entities.capacity()), getFontSizeScaled(20.0f), TOP_LEFT);
+      drawText(font, V2(10.0f, 40.0f), TextFormat("FS: %llu/%llu", freeSlots.size(), freeSlots.capacity()), getFontSizeScaled(20.0f), TOP_LEFT);
+      drawText(font, V2(10.0f, 70.0f), TextFormat("AE: %llu", entities.size() - freeSlots.size()), getFontSizeScaled(20.0f), TOP_LEFT);
    }
    else {
       DrawText("You died! Press r to restart.\n Or esc to go to main menu.", 20, 20, 80, RED);
